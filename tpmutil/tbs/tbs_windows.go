@@ -56,6 +56,8 @@ const (
 	SystemPriority CommandPriority = 400 // For system tasks that access the TPM
 
 	commandLocalityZero uint32 = 0 // Windows currently only supports TBS_COMMAND_LOCALITY_ZERO.
+
+	srtmCurrent uint32 = 0
 )
 
 // Error is the return type of all functions in this package.
@@ -248,5 +250,23 @@ func (context Context) GetTCGLog(logBuffer []byte) (uint32, error) {
 		sliceAddress(logBuffer),
 		uintptr(unsafe.Pointer(&logBufferLen)),
 	)
+	return logBufferLen, getError(result)
+}
+
+func GetTCGLogEx(logBuffer []byte) (uint32, error) {
+	logBufferLen := uint32(len(logBuffer))
+	
+	//  TBS_RESULT Tbsi_Get_TCG_Log_Ex(
+	//    UINT32  logType,
+        //    PBYTE   pbOutput,
+        //    PUINT32 pcbOutput
+        //  );
+	
+	result, _, _ := tbsGetTCGLogEx.Call(
+		uintptr(srtmCurrent),
+		sliceAddress(logBuffer),
+		uintptr(unsafe.Pointer(&logBufferLen)),
+	)
+
 	return logBufferLen, getError(result)
 }
